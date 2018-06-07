@@ -27,6 +27,7 @@ namespace Kudu.Services.Web
                         c.OperationFilter<AddFileParamTypes>();
                         c.OperationFilter<NoReservedParam>();
                         c.OperationFilter<AcceptedResponseFilter>();
+						c.OperationFilter<AddQueryStringParam>();
                         c.OperationFilter<QueryParamCantBeObject>();
                     })
                 .EnableSwaggerUi(c =>
@@ -84,6 +85,27 @@ public class AddFileParamTypes : IOperationFilter
             operation.parameters.Insert(0, fileParam);
         }
     }
+}
+
+public class AddQueryStringParam : IOperationFilter
+{
+	public void Apply(Operation operation, SchemaRegistry schemaRegistry, ApiDescription apiDescription)
+	{
+		var warDeployQueryParam = new Parameter
+		{
+			name = "name",
+			@in = "query",
+			required = false,
+			type = "string"
+		};
+		if (operation.operationId == "PushDeployment_WarPushDeploy")
+		{
+			List<Parameter> parameters = new List<Parameter>();
+			parameters.AddRange(operation.parameters);
+			parameters.Add(warDeployQueryParam);
+			operation.parameters = parameters.ToArray();
+		}
+	}
 }
 
 public class NoReservedParam : IOperationFilter
